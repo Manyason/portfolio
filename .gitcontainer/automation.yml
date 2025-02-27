@@ -1,0 +1,25 @@
+# .github/workflows/automation.yml
+name: Gitpod CI/CD Automation
+
+on:
+  push:
+    branches:
+      - main  # main ブランチにプッシュしたときに実行
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v3
+
+      - name: Gitpod で環境をセットアップ
+        run: |
+          curl -fsSL https://gitpod.io/install.sh | bash
+          gitpod start
+
+      - name: Python のテストを実行
+        run: |
+          pip install -r requirements.txt
+          pytest tests/
