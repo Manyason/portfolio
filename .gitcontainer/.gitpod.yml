@@ -1,8 +1,0 @@
-image:
-  file: .gitpod.Dockerfile  # カスタムコンテナを指定
-tasks:
-  - init: echo "Setting up Mininet and Ryu SDN Controller"
-    command: sudo mn --test pingall  # Mininetの動作確認
-ports:
-  - port: 6633  # Ryu SDN Controllerのデフォルトポート
-    onOpen: open-preview
