@@ -13,7 +13,9 @@ int moveCount = 0;
 int dx[4] = { 0, 0, -1, 1 };
 int dy[4] = { -1, 1, 0, 0 };
 
-char getch() {
+// ユーザーの1文字入力をエコーなし・Enter不要で取得する関数（UNIX端末用）
+char getch() 
+{
     struct termios oldt, newt;
     char ch;
 
@@ -25,11 +27,14 @@ char getch() {
     ch = getchar();
 
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    return ch;
+    return (ch);
 }
 
-void shuffle(int *array, int n) {
-    for (int i = 0; i < n - 1; i++) {
+// 配列の要素をランダムに並び替える（Fisher-Yatesシャッフル）
+void shuffle(int *array, int n) 
+{
+    for (int i = 0; i < n - 1; i++) 
+    {
         int j = i + rand() % (n - i);
         int tmp = array[i];
         array[i] = array[j];
@@ -37,15 +42,19 @@ void shuffle(int *array, int n) {
     }
 }
 
-void dfs(int x, int y) {
+// 再帰的に迷路を掘って生成する深さ優先探索アルゴリズム（DFS）
+void dfs(int x, int y) 
+{
     int dirs[4] = { 0, 1, 2, 3 };
     shuffle(dirs, 4);
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++) 
+    {
         int nx = x + dx[dirs[i]] * 2;
         int ny = y + dy[dirs[i]] * 2;
 
-        if (nx >= 1 && nx < WIDTH - 1 && ny >= 1 && ny < HEIGHT - 1 && maze[ny][nx] == '#') {
+        if (nx >= 1 && nx < WIDTH - 1 && ny >= 1 && ny < HEIGHT - 1 && maze[ny][nx] == '#') 
+        {
             maze[y + dy[dirs[i]]][x + dx[dirs[i]]] = ' ';
             maze[ny][nx] = ' ';
             dfs(nx, ny);
@@ -53,50 +62,69 @@ void dfs(int x, int y) {
     }
 }
 
-int countAdjacentWalls(int x, int y) {
+// 指定座標の周囲にある壁('#')の数をカウントする関数
+int countAdjacentWalls(int x, int y) 
+{
     int count = 0;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++) 
+    {
         int nx = x + dx[i];
         int ny = y + dy[i];
-        if (nx >= 0 && nx < WIDTH && ny >= 0 && ny < HEIGHT && maze[ny][nx] == '#') {
+        if (nx >= 0 && nx < WIDTH && ny >= 0 && ny < HEIGHT && maze[ny][nx] == '#') 
+        {
             count++;
         }
     }
-    return count;
+    return (count);
 }
 
-void addLoops(int loopCount) {
-    for (int i = 0; i < loopCount; i++) {
+// 通路のループ（回り道）をランダムに追加して、単調な迷路を回避
+void addLoops(int loopCount) 
+{
+    for (int i = 0; i < loopCount; i++) 
+    {
         int x = rand() % (WIDTH - 2) + 1;
         int y = rand() % (HEIGHT - 2) + 1;
         if (maze[y][x] == '#' && 
-            maze[y-1][x] == ' ' && maze[y+1][x] == ' ') {
+            maze[y-1][x] == ' ' && maze[y+1][x] == ' ') 
+            {
             maze[y][x] = ' ';
         }
         if (maze[y][x] == '#' && 
-            maze[y][x-1] == ' ' && maze[y][x+1] == ' ') {
+            maze[y][x-1] == ' ' && maze[y][x+1] == ' ') 
+            {
             maze[y][x] = ' ';
         }
     }
 }
 
-void allocateMaze() {
+// 迷路用の2次元配列を動的に確保する関数
+void allocateMaze() 
+{
     maze = (char **)malloc(sizeof(char *) * HEIGHT);
-    for (int i = 0; i < HEIGHT; i++) {
+    for (int i = 0; i < HEIGHT; i++) 
+    {
         maze[i] = (char *)malloc(sizeof(char) * WIDTH);
     }
 }
 
-void freeMaze() {
-    for (int i = 0; i < HEIGHT; i++) {
+// 確保した迷路配列を解放する関数
+void freeMaze() 
+{
+    for (int i = 0; i < HEIGHT; i++) 
+    {
         free(maze[i]);
     }
     free(maze);
 }
 
-void generateMaze() {
-    for (int y = 0; y < HEIGHT; y++) {
-        for (int x = 0; x < WIDTH; x++) {
+// 迷路を生成する関数（初期化 → 掘る → スタート/ゴール設定 → ループ追加）
+void generateMaze() 
+{
+    for (int y = 0; y < HEIGHT; y++) 
+    {
+        for (int x = 0; x < WIDTH; x++) 
+        {
             maze[y][x] = '#';
         }
     }
@@ -116,15 +144,22 @@ void generateMaze() {
     addLoops(30);
 }
 
-void printMaze() {
+// 迷路とプレイヤー・ゴールの現在の状態をターミナルに表示する関数
+void printMaze() 
+{
     system("clear");
-    for (int y = 0; y < HEIGHT; y++) {
-        for (int x = 0; x < WIDTH; x++) {
-            if (x == playerX && y == playerY) {
+    for (int y = 0; y < HEIGHT; y++) 
+    {
+        for (int x = 0; x < WIDTH; x++) 
+        {
+            if (x == playerX && y == playerY) 
+            {
                 putchar('P');
-            } else if (x == goalX && y == goalY) {
+            } else if (x == goalX && y == goalY) 
+            {
                 putchar('G');
-            } else {
+            } else 
+            {
                 putchar(maze[y][x]);
             }
         }
@@ -136,11 +171,14 @@ void printMaze() {
     printf("WASDで移動。ゴール = G\n");
 }
 
-void movePlayer(char dir) {
+// プレイヤーをWASDキーに応じて移動させる関数（移動先が通路かどうか判定）
+void movePlayer(char dir) 
+{
     int newX = playerX;
     int newY = playerY;
 
-    switch (dir) {
+    switch (dir) 
+    {
         case 'w': newY--; break;
         case 's': newY++; break;
         case 'a': newX--; break;
@@ -148,14 +186,16 @@ void movePlayer(char dir) {
         default: return;
     }
 
-    if (maze[newY][newX] == ' ') {
+    if (maze[newY][newX] == ' ') 
+    {
         playerX = newX;
         playerY = newY;
         moveCount++;
     }
 }
 
-int main() {
+int main() 
+{
     srand(time(NULL));
 
     // 入力：迷路サイズ
@@ -171,10 +211,12 @@ int main() {
     allocateMaze();
     generateMaze();
 
-    while (1) {
+    while (1) 
+    {
         printMaze();
 
-        if (playerX == goalX && playerY == goalY) {
+        if (playerX == goalX && playerY == goalY) 
+        {
             printf("ゴール！クリア！\n");
             printf("総移動回数: %d\n", moveCount);
             break;
@@ -185,5 +227,5 @@ int main() {
     }
 
     freeMaze();
-    return 0;
+    return (0);
 }
