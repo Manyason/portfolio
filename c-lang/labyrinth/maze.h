@@ -7,9 +7,7 @@ extern int goalX, goalY;
 
 void allocateMaze();
 void freeMaze();
-void generateMaze();
 void printMaze();
-int countAdjacentWalls(int x, int y);
-void addLoops(int loopCount);
+void generateMaze();
 
 #endif
