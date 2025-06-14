@@ -1,100 +1,101 @@
-#include <stdbool.h>
 #include <stdlib.h>
+#include <time.h>
 #include "maze.h"
 #include "util.h"
 #include "wilson.h"
 
-bool isInside(int x, int y) 
-{
-    return x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT;
-}
+// dx, dy は {0, 0, -1, 1} / {-1, 1, 0, 0} で外部定義されている前提
+extern int dx[4], dy[4];
+extern int WIDTH, HEIGHT;
+extern char **maze;
 
-// ループを消したランダムウォークを生成
-int loopErasedWalk(Point *path, int startX, int startY) 
-{
-    Point walk[WIDTH * HEIGHT];
-    int step = 0;
 
-    int x = startX, y = startY;
-    int visitedMap[HEIGHT][WIDTH];
-    for (int i = 0; i < HEIGHT; i++)
-        for (int j = 0; j < WIDTH; j++)
-            visitedMap[i][j] = -1;
+void wilson(void) {
+    // 乱数初期化
+    srand(time(NULL));
 
-    while (maze[y][x] != ' ') 
-    {
-        walk[step].x = x;
-        walk[step].y = y;
-        visitedMap[y][x] = step;
-        step++;
+    // 動的確保
+    int **visited = (int **)malloc(sizeof(int *) * HEIGHT);
+    int **mark    = (int **)malloc(sizeof(int *) * HEIGHT);
+    for (int y = 0; y < HEIGHT; y++) {
+        visited[y] = (int *)calloc(WIDTH, sizeof(int));
+        mark[y]    = (int *)calloc(WIDTH, sizeof(int));
+    }
 
-        int dirs[4] = { 0, 1, 2, 3 };
-        shuffle(dirs, 4); // 上下左右をランダムに
+    // スタート地点 (1,1)
+    visited[1][1] = 1;
 
-        bool moved = false;
-        for (int i = 0; i < 4; i++) 
-        {
-            int nx = x + dx[dirs[i]] * 2;
-            int ny = y + dy[dirs[i]] * 2;
+    int total_cells = ((WIDTH - 1) / 2) * ((HEIGHT - 1) / 2);
+    int visited_cells = 1;
 
-            if (isInside(nx, ny)) 
-            {
-                // ループ発見：巻き戻し
-                if (visitedMap[ny][nx] != -1) 
-                {
-                    step = visitedMap[ny][nx] + 1;
+    while (visited_cells < total_cells) {
+        int sx, sy;
+        do {
+            sx = (rand() % ((WIDTH - 1) / 2)) * 2 + 1;
+            sy = (rand() % ((HEIGHT - 1) / 2)) * 2 + 1;
+        } while (visited[sy][sx]);
+
+        int len = 0;
+        Point path[WIDTH * HEIGHT]; // 最大長さで確保（VLAでない）
+
+        path[len++] = (Point){sx, sy};
+
+        for (;;) {
+            int dirs[4] = {0, 1, 2, 3};
+            shuffle(dirs, 4);
+            int moved = 0;
+
+            for (int i = 0; i < 4; i++) {
+                int nx = path[len - 1].x + dx[dirs[i]] * 2;
+                int ny = path[len - 1].y + dy[dirs[i]] * 2;
+
+                if (nx > 0 && nx < WIDTH - 1 && ny > 0 && ny < HEIGHT - 1) {
+                    path[len++] = (Point){nx, ny};
+
+                    // ループ検出して削除
+                    for (int j = 0; j < len - 1; j++) {
+                        if (path[j].x == nx && path[j].y == ny) {
+                            len = j + 1;
+                            break;
+                        }
+                    }
+
+                    moved = 1;
+                    break;
                 }
-
-                x = nx;
-                y = ny;
-                moved = true;
-                break;
             }
+
+            if (!moved) break; // 動けない → 強制終了
+
+            if (visited[path[len - 1].y][path[len - 1].x])
+                break; // 終了条件：接続済みマスに到達
         }
 
-        if (!moved) break; // 動けなければ終了（念のため）
-    }
-
-    for (int i = 0; i < step; i++) 
-    {
-        path[i] = walk[i];
-    }
-
-    return step;
-}
-
-void wilson(int startX, int startY) 
-{
-    while (1) 
-    {
-        // ランダムな奇数座標（通路候補）を選択
-        int x = rand() % ((WIDTH - 1) / 2) * 2 + 1;
-        int y = rand() % ((HEIGHT - 1) / 2) * 2 + 1;
-
-        if (maze[y][x] == ' ') continue;
-
-        Point path[WIDTH * HEIGHT];
-        int length = loopErasedWalk(path, x, y);
-
-        for (int i = 0; i < length - 1; i++) 
-        {
-            int x1 = path[i].x, y1 = path[i].y;
-            int x2 = path[i + 1].x, y2 = path[i + 1].y;
-            int mx = (x1 + x2) / 2;
-            int my = (y1 + y2) / 2;
+        // 経路を迷路に反映
+        for (int i = 0; i < len - 1; i++) {
+            int x1 = path[i].x;
+            int y1 = path[i].y;
+            int x2 = path[i + 1].x;
+            int y2 = path[i + 1].y;
+            int wx = (x1 + x2) / 2;
+            int wy = (y1 + y2) / 2;
 
             maze[y1][x1] = ' ';
-            maze[my][mx] = ' ';
+            maze[wy][wx] = ' ';
             maze[y2][x2] = ' ';
+
+            if (!visited[y2][x2]) {
+                visited[y2][x2] = 1;
+                visited_cells++;
+            }
         }
-
-        // 終了条件チェック：全マス訪問済みか？
-        bool allVisited = true;
-        for (int y = 1; y < HEIGHT; y += 2)
-            for (int x = 1; x < WIDTH; x += 2)
-                if (maze[y][x] == '#')
-                    allVisited = false;
-
-        if (allVisited) break;
     }
+
+    // 動的確保の解放
+    for (int y = 0; y < HEIGHT; y++) {
+        free(visited[y]);
+        free(mark[y]);
+    }
+    free(visited);
+    free(mark);
 }

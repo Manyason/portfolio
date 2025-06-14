@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -std=c11
 
-OBJS = main.o maze.o player.o util.o dfs.o wilson.o
+OBJS = main.o maze.o player.o util.o dfs.o prim.o wilson.o
 
 maze_game: $(OBJS)
 	$(CC) $(CFLAGS) -o maze_game $(OBJS)

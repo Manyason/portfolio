@@ -5,6 +5,7 @@
 #include "player.h"
 #include "dfs.h"
 #include "wilson.h"
+#include "prim.h"
 
 int WIDTH, HEIGHT;
 char **maze;
@@ -73,8 +74,9 @@ void generateMaze()
 
     int startX = 1, startY = 1;
     maze[startY][startX] = ' ';
-    dfs(startX, startY);
-    //wilson(startX, startY);
+    //dfs(startX, startY);
+    prim(startX, startY);
+    //wilson();
 
     playerX = startX;
     playerY = startY;

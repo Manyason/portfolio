@@ -5,6 +5,6 @@ typedef struct {
     int x, y;
 } Point;
 
-void wilson(int startX, int startY) ;
+void wilson(void) ;
 
 #endif
