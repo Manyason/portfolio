@@ -3,9 +3,6 @@
 #include "maze.h"
 #include "util.h"
 
-int dx[4] = { 0, 0, -1, 1 };
-int dy[4] = { -1, 1, 0, 0 };
-
 // 再帰的に迷路を掘って生成する深さ優先探索アルゴリズム（DFS）
 void dfs(int x, int y) 
 {

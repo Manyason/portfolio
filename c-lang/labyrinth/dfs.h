@@ -1,5 +1,5 @@
-#ifndef MAP_H
-#define MAP_H
+#ifndef DFS_H
+#define DFS_H
 
 void dfs(int x, int y);
 

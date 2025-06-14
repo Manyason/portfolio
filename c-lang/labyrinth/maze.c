@@ -4,10 +4,14 @@
 #include "util.h"
 #include "player.h"
 #include "dfs.h"
+#include "wilson.h"
 
 int WIDTH, HEIGHT;
 char **maze;
 int goalX, goalY;
+
+int dx[4] = { 0, 0, -1, 1 };
+int dy[4] = { -1, 1, 0, 0 };
 
 // 迷路用の2次元配列を動的に確保する関数
 void allocateMaze() 
@@ -69,7 +73,8 @@ void generateMaze()
 
     int startX = 1, startY = 1;
     maze[startY][startX] = ' ';
-    dfs(startX, startY);
+    //dfs(startX, startY);
+    wilson(startX, startY);
 
     playerX = startX;
     playerY = startY;
