@@ -9,15 +9,13 @@ bool isInside(int x, int y)
     return x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT;
 }
 
-// ランダムウォークの経路を記録し、ループを消して返す
+// ループを消したランダムウォークを生成
 int loopErasedWalk(Point *path, int startX, int startY) 
 {
     Point walk[WIDTH * HEIGHT];
     int step = 0;
 
     int x = startX, y = startY;
-
-    // 各マスの訪問マップ（経路上での最後の位置を記録）
     int visitedMap[HEIGHT][WIDTH];
     for (int i = 0; i < HEIGHT; i++)
         for (int j = 0; j < WIDTH; j++)
@@ -31,8 +29,9 @@ int loopErasedWalk(Point *path, int startX, int startY)
         step++;
 
         int dirs[4] = { 0, 1, 2, 3 };
-        shuffle(dirs, 4); // 方向をランダムに
+        shuffle(dirs, 4); // 上下左右をランダムに
 
+        bool moved = false;
         for (int i = 0; i < 4; i++) 
         {
             int nx = x + dx[dirs[i]] * 2;
@@ -40,35 +39,35 @@ int loopErasedWalk(Point *path, int startX, int startY)
 
             if (isInside(nx, ny)) 
             {
-                x = nx;
-                y = ny;
-
-                // ループがあれば巻き戻す
-                if (visitedMap[y][x] != -1) 
+                // ループ発見：巻き戻し
+                if (visitedMap[ny][nx] != -1) 
                 {
-                    step = visitedMap[y][x] + 1;
+                    step = visitedMap[ny][nx] + 1;
                 }
 
+                x = nx;
+                y = ny;
+                moved = true;
                 break;
             }
         }
+
+        if (!moved) break; // 動けなければ終了（念のため）
     }
 
-    // ループの消えたパスを path にコピー
     for (int i = 0; i < step; i++) 
     {
         path[i] = walk[i];
     }
 
-    return (step);
+    return step;
 }
 
-// Wilson法による迷路生成
 void wilson(int startX, int startY) 
 {
-    // 未訪問セルがある限り繰り返す
     while (1) 
     {
+        // ランダムな奇数座標（通路候補）を選択
         int x = rand() % ((WIDTH - 1) / 2) * 2 + 1;
         int y = rand() % ((HEIGHT - 1) / 2) * 2 + 1;
 
@@ -79,11 +78,8 @@ void wilson(int startX, int startY)
 
         for (int i = 0; i < length - 1; i++) 
         {
-            int x1 = path[i].x;
-            int y1 = path[i].y;
-            int x2 = path[i + 1].x;
-            int y2 = path[i + 1].y;
-
+            int x1 = path[i].x, y1 = path[i].y;
+            int x2 = path[i + 1].x, y2 = path[i + 1].y;
             int mx = (x1 + x2) / 2;
             int my = (y1 + y2) / 2;
 
@@ -92,7 +88,7 @@ void wilson(int startX, int startY)
             maze[y2][x2] = ' ';
         }
 
-        // すべてのマスが訪問済みか確認
+        // 終了条件チェック：全マス訪問済みか？
         bool allVisited = true;
         for (int y = 1; y < HEIGHT; y += 2)
             for (int x = 1; x < WIDTH; x += 2)
