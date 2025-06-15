@@ -74,8 +74,8 @@ void generateMaze()
 
     int startX = 1, startY = 1;
     maze[startY][startX] = ' ';
-    //dfs(startX, startY);
-    prim(startX, startY);
+    dfs(startX, startY);
+    //prim(startX, startY);
     //wilson();
 
     playerX = startX;
